@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<atlassian-plugin-marketing>
+    <logo image="images/plugin-logo.png"/>
+    <compatibility>
+        <product name="bamboo"  min="6.0" max="6.4"/>
+      </compatibility>
+    <highlights>
+        <highlight image="images/marketing/api_settings.jpg" cropped="images/marketing/api_settings_cropped.jpg"/>
+        <highlight image="images/marketing/scan_task.jpg" cropped="images/marketing/scan_task_cropped.jpg"/>
+        <highlight image="images/marketing/report_available.jpg" cropped="images/marketing/report_available_cropped.jpg"/>
+    </highlights>
+    <screenshots>
+        <screenshot image="images/marketing/report_not_available.jpg"/>
+    </screenshots>
+</atlassian-plugin-marketing>
