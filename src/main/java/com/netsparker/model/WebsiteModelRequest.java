@@ -1,7 +1,10 @@
 package com.netsparker.model;
 
-import net.sf.corn.httpclient.HttpForm;
-import net.sf.corn.httpclient.HttpResponse;
+import com.netsparker.utility.AppCommon;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -14,49 +17,74 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class WebsiteModelRequest extends ScanRequestBase{
-	public static final String Websites_JSON_MODEL_Literal = "netsparkerCloudWebsitesJsonModel";
-	
-	private final String json = "application/json";
-	private HttpResponse response;
-	private ArrayList<WebsiteModel> websiteModels = new ArrayList<>();
+public class WebsiteModelRequest extends ScanRequestBase {
+    public static final String Websites_JSON_MODEL_Literal = "netsparkerCloudWebsitesJsonModel";
 	private String websitesJsonModel = "";
 
-	
-	public WebsiteModelRequest(String apiURL, String apiToken) {
+	private ArrayList<WebsiteModel> websiteModels = new ArrayList<>();
+	private HttpResponse response;
+
+	public WebsiteModelRequest(String apiURL, String apiToken) throws MalformedURLException, NullPointerException, URISyntaxException {
 		super(apiURL, apiToken);
-		try {
-			pluginWebSiteModelsUri = getPluginWebSiteModelsEndpoint();
-		}catch (Exception ex){
-		hasError=true;
-		errorMessage=ex.getMessage();
-		}
+		pluginWebSiteModelsUri = new URL(ApiURL, "api/1.0/scans/PluginWebSiteModels").toURI();
 	}
-	
-	private URI pluginWebSiteModelsUri;
-	
+
+	private final URI pluginWebSiteModelsUri;
+
 	public ArrayList<WebsiteModel> getWebsiteModels() {
 		return websiteModels;
 	}
-	
-	
-	public HttpResponse getPluginWebSiteModels() {
-		try {
-			HttpForm client = new HttpForm(pluginWebSiteModelsUri);
-			// Basic Authentication
-			client.setCredentials("", ApiToken);
-			client.setAcceptedType(json);
-			response = client.doGet();
-			if (response.getCode() == 200) {
-				parseWebsiteData();
-			}
-		} catch (Exception ex) {
-			hasError = true;
-			errorMessage = ex.getMessage();
+
+	public HttpResponse getPluginWebSiteModels() throws IOException, ParseException {
+		final HttpClient httpClient = getHttpClient();
+		final HttpGet httpGet = new HttpGet(pluginWebSiteModelsUri);
+		httpGet.setHeader("Accept", json);
+		httpGet.setHeader(HttpHeaders.AUTHORIZATION, getAuthHeader());
+
+		response = httpClient.execute(httpGet);
+		if (response.getStatusLine().getStatusCode() == 200) {
+			parseWebsiteData();
 		}
 		return response;
 	}
-	
+
+	private void parseWebsiteData() throws ParseException, IOException {
+		String data = AppCommon.parseResponseToString(response);
+		websitesJsonModel = data;
+
+		JSONParser parser = new JSONParser();
+		Object jsonData = parser.parse(data);
+
+		JSONArray WebsiteModelObjects = (JSONArray) jsonData;
+		websiteModels = new ArrayList<>();
+
+		for (Object wmo : WebsiteModelObjects) {
+			if (wmo instanceof JSONObject) {
+				JSONObject websiteModelObject = (JSONObject) wmo;
+
+				WebsiteModel websiteModel = new WebsiteModel();
+				websiteModel.setId((String) websiteModelObject.get("Id"));
+				websiteModel.setName((String) websiteModelObject.get("Name"));
+				websiteModel.setUrl((String) websiteModelObject.get("Url"));
+
+				JSONArray WebsiteProfileModelObjects = (JSONArray) websiteModelObject.get("WebsiteProfiles");
+				ArrayList<WebsiteProfileModel> profiles = new ArrayList<>();
+				for (Object wmpo : WebsiteProfileModelObjects) {
+					JSONObject websiteProfileModelObject = (JSONObject) wmpo;
+
+					WebsiteProfileModel websiteProfileModel = new WebsiteProfileModel();
+					websiteProfileModel.setId((String) websiteProfileModelObject.get("Id"));
+					websiteProfileModel.setName((String) websiteProfileModelObject.get("Name"));
+
+					profiles.add(websiteProfileModel);
+				}
+
+				websiteModel.setProfiles(profiles);
+				websiteModels.add(websiteModel);
+			}
+		}
+	}
+
 	public String getWebsitesJsonModel() {
 		try {
 			getPluginWebSiteModels();
@@ -64,54 +92,8 @@ public class WebsiteModelRequest extends ScanRequestBase{
 			hasError = true;
 			errorMessage = ex.getMessage();
 		}
-		
-		getPluginWebSiteModels();
+
 		return websitesJsonModel;
 	}
-	
-	private URI getPluginWebSiteModelsEndpoint() throws MalformedURLException, URISyntaxException {
-		String relativePath = "api/1.0/scans/PluginWebSiteModels";
-		return new URL(ApiURL, relativePath).toURI();
-	}
-	
-	private ArrayList<WebsiteModel> parseWebsiteData() throws ParseException {
-		websitesJsonModel = response.getData();
-		return parseWebsiteData(websitesJsonModel);
-	}
-	
-	private ArrayList<WebsiteModel> parseWebsiteData(String websiteData) throws ParseException {
-		JSONParser parser = new JSONParser();
-		Object jsonData = parser.parse(websiteData);
-		
-		JSONArray WebsiteModelObjects = (JSONArray) jsonData;
-		websiteModels = new ArrayList<>();
-		
-		for (Object wmo : WebsiteModelObjects) {
-			if (wmo instanceof JSONObject) {
-				JSONObject websiteModelObject = (JSONObject) wmo;
-				
-				WebsiteModel websiteModel = new WebsiteModel();
-				websiteModel.setId((String) websiteModelObject.get("Id"));
-				websiteModel.setName((String) websiteModelObject.get("Name"));
-				websiteModel.setUrl((String) websiteModelObject.get("Url"));
-				
-				JSONArray WebsiteProfileModelObjects = (JSONArray) websiteModelObject.get("WebsiteProfiles");
-				ArrayList<WebsiteProfileModel> profiles = new ArrayList<>();
-				for (Object wmpo : WebsiteProfileModelObjects) {
-					JSONObject websiteProfileModelObject = (JSONObject) wmpo;
-					
-					WebsiteProfileModel websiteProfileModel = new WebsiteProfileModel();
-					websiteProfileModel.setId((String) websiteProfileModelObject.get("Id"));
-					websiteProfileModel.setName((String) websiteProfileModelObject.get("Name"));
-					
-					profiles.add(websiteProfileModel);
-				}
-				
-				websiteModel.setProfiles(profiles);
-				websiteModels.add(websiteModel);
-			}
-		}
-		
-		return websiteModels;
-	}
+
 }

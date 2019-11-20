@@ -1,19 +1,46 @@
 package com.netsparker.model;
 
-import net.sf.corn.httpclient.HttpResponse;
+import com.netsparker.utility.AppCommon;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class ScanReport{
+import java.io.IOException;
+
+public class ScanReport {
 	private final HttpResponse reportRequestResponse;
-	private final boolean hasError;
-	
-	public ScanReport(final HttpResponse reportRequestResponse) {
+	private final boolean scanRequestHasError;
+	private final String scanRequestErrorMessage;
+	private final boolean reportRequestHasError;
+	private final String reportRequestErrorMessage;
+	private final String requestURI;
+	private static String reportHtmlAsString = null;
+
+	public ScanReport(HttpResponse reportRequestResponse, String requestURI) {
 		this.reportRequestResponse = reportRequestResponse;
-		this.hasError = reportRequestResponse.hasError();
+		this.scanRequestHasError = false;
+		this.scanRequestErrorMessage = "";
+		this.reportRequestHasError = false;
+		this.reportRequestErrorMessage = "";
+		this.requestURI = requestURI;
 	}
-	
+
+	public ScanReport(boolean scanRequestHasError, String scanRequestErrorMessage,
+					  boolean reportRequestHasError, String reportRequestErrorMessage, String requestURI) {
+		this.reportRequestResponse = null;
+		this.scanRequestHasError = scanRequestHasError;
+		this.scanRequestErrorMessage = scanRequestErrorMessage;
+		this.reportRequestHasError = reportRequestHasError;
+		this.reportRequestErrorMessage = reportRequestErrorMessage;
+		this.requestURI = requestURI;
+	}
+
+	private String getContentType() {
+		return reportRequestResponse.getHeaders("Content-Type")[0].getValue();
+	}
+
 	public boolean isReportGenerated() {
 		//when report stored, it will be loaded from disk for later requests. There is an exception potential.
 		try {
@@ -22,26 +49,72 @@ public class ScanReport{
 			return false;
 		}
 	}
-	
-	private String getContentType() {
-		return reportRequestResponse.getHeaderFields().get("Content-Type").get(0);
+
+	public static void setReportHtmlAsStringField(String reportHtml) {
+		ScanReport.reportHtmlAsString = reportHtml;
 	}
-	
-	public String getContent() throws ParseException {
-		String content;
+
+	public void setReportHtmlAsString(String reportHtml) {
+		setReportHtmlAsStringField(reportHtml);
+	}
+
+	public String getContent() {
+		String content = "";
 		try {
-			String contentData = reportRequestResponse.getData();
-			if (isReportGenerated()) {
-				content = contentData;
+			if (scanRequestHasError) {
+				content = ExceptionContent(content, scanRequestErrorMessage);
+			} else if (reportRequestHasError) {
+				content = ExceptionContent(content, reportRequestErrorMessage);
 			} else {
-				JSONParser parser = new JSONParser();
-				JSONObject obj = (JSONObject) parser.parse(contentData);
-				content = (String) obj.get("Message");
+
+				HttpEntity httpEntity = reportRequestResponse.getEntity();
+
+				String contentData = null;
+
+				try {
+					contentData = AppCommon.parseResponseToString(reportRequestResponse);
+
+					setReportHtmlAsString(contentData);
+				} catch (IOException ex) {
+					contentData = reportHtmlAsString;
+				}
+
+				if (isReportGenerated()) {
+					content = contentData;
+				} else {
+					JSONParser parser = new JSONParser();
+					JSONObject obj = (JSONObject) parser.parse(contentData);
+					content = (String) obj.get("Message");
+				}
 			}
-			
+		} catch (ParseException ex) {
+			content = ExceptionContent("Report result is not parsable.", ex.toString());
 		} catch (Exception ex) {
-			content = "Scan report is not available because the scan request failed or the scan is not exist anymore.";
+			content = ExceptionContent(content, ex.toString());
 		}
+
+		return content;
+	}
+
+	private String ExceptionContent(String content, String ExceptionMessage) {
+		if (content != null && !content.isEmpty()) {
+			content = "<p>" + content + "</p>";
+		} else {
+			content = "<p>Something went wrong.</p>";
+		}
+		if (requestURI != null) {
+			content = content
+					+ "<p>Request URL: " + requestURI + "</p>";
+		}
+		if (reportRequestResponse != null && reportRequestResponse.getStatusLine() != null) {
+			content = content
+					+ "<p>HttpStatusCode: " + reportRequestResponse.getStatusLine().getStatusCode() + "</p>";
+		}
+		if (ExceptionMessage != null) {
+			content = content
+					+ "<p>Exception Message:: " + ExceptionMessage + "</p>";
+		}
+
 		return content;
 	}
 }

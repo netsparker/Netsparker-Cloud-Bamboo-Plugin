@@ -25,7 +25,7 @@
         <b>Full (With primary profile)</b>
         <hr>
         Performs full scan with primary profile.<br>
-        If no primary profile have been defined yet, default Netsparker Cloud scan settings will be used.<br><br>
+        If no primary profile have been defined yet, default Netsparker Enterprise scan settings will be used.<br><br>
         <b>Full (With selected profile)</b>
         <hr>
         Performs full scan with provided profile settings.
@@ -79,7 +79,7 @@
         if (!Array.isArray(ncWebSiteModels)) {
             ncErrorMessageContainer.show();
         } else if (ncWebSiteModels == false) {
-            ncErrorMessageElement.text("You don't have any Netsparker Cloud defined website to initiate a scan.");
+            ncErrorMessageElement.text("You don't have any Netsparker Enterprise defined website to initiate a scan.");
             ncErrorMessageContainer.show();
         }
         else {

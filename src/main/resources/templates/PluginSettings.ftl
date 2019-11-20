@@ -1,18 +1,18 @@
 <html>
 <head>
-    <title>Netsparker Cloud</title>
+    <title>Netsparker Enterprise</title>
     <meta name="decorator" content="adminpage">
 ${webResourceManager.requireResource("com.netsparker.netsparkercloud-bamboo-plugin:netsparker-cloud-web-resources")}
 </head>
 <body>
 <div id="netsparkerCloudSuccessMessage" class="aui-message aui-message-success" style="display:none">
     <p class="title">
-        Successfully connected to the Netsparker Cloud.
+        Successfully connected to the Netsparker Enterprise.
     </p>
 </div>
 <div id="netsparkerCloudErrorMessage" class="aui-message aui-message-error" style="display: none">
     <p class="title">
-        Failed to connect to the Netsparker Cloud.
+        Failed to connect to the Netsparker Enterprise.
     </p>
 </div>
 [@ww.form action="/admin/netsparkercloud/NetsparkerCloudSaveConfiguration.action"
@@ -23,17 +23,17 @@ cancelUri='/admin/administer.action']
 <div class="paddedClearer"></div>
 <div style="color: #3f3f3f;display:inline;font-size: 130%;">
     <img src="${req.contextPath}/download/resources/com.netsparker.netsparkercloud-bamboo-plugin:netsparker-cloud-assets/netsparker-cloud-logo.svg"
-         alt="Netsparker Cloud"
+         alt="Netsparker Enterprise"
          style="vertical-align:top; margin-bottom:1px;display: inline-block;height:1.6em;width: auto;"/>
-    <h1 style="zoom:1;color: #3f3f3f;display:inline-block">Netsparker Cloud</h1>
+    <h1 style="zoom:1;color: #3f3f3f;display:inline-block">Netsparker Enterprise</h1>
 </div>
 <div class="aui-page-panel">
     <div class="aui-page-panel-inner">
         <section class="aui-page-panel-content">
             <h2 style="margin-left: 55px;">API Settings</h2>
 
-            [@ww.textfield name="apiUrl" label='Server URL' description="Netsparker Cloud URL, like 'https://www.netsparkercloud.com'"/]
-            [@ww.password name="apiToken" label='API Token' showPassword='false' description="It can be found at 'Your Account > API Settings' page in the Netsparker Cloud.<br/>
+            [@ww.textfield name="apiUrl" label='Server URL' description="Netsparker Enterprise URL, like 'https://www.netsparkercloud.com'"/]
+            [@ww.password name="apiToken" label='API Token' showPassword='false' description="It can be found at 'Your Account > API Settings' page in the Netsparker Enterprise.<br/>
                          User must have 'Start Scans' permission for the target website."/]
             <br>
             <button type="button" id="netsparkerCloudTestConnectionButton" class="aui-button"
