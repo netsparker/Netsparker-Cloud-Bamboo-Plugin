@@ -18,15 +18,16 @@ public class NetsparkerCloudReport extends PlanResultsAction {
     public String execute() throws Exception {
         String result = super.execute();
         try {
-            final NetsparkerCloudScanHelper netsparkerCloudScanHelper = new NetsparkerCloudScanHelper();
-            final String scanTaskID = netsparkerCloudScanHelper.GetScanTaskID(getBuildKey(), getBuildNumberString());
-            final ScanReport scanReport = netsparkerCloudScanHelper.GetScanReport(scanTaskID);
+            final NetsparkerCloudScanHelper netsparkerCloudScanHelper =
+                    new NetsparkerCloudScanHelper();
+            final String scanTaskID =
+                    netsparkerCloudScanHelper.GetScanTaskID(getBuildKey(), getBuildNumberString());
             this.scanTaskID = scanTaskID;
+            final ScanReport scanReport = netsparkerCloudScanHelper.GetScanReport(scanTaskID);
             isReportGenerated = String.valueOf(scanReport.isReportGenerated());
             hasError = "false";
             errorMessage = "";
         } catch (Exception ex) {
-            this.scanTaskID = scanTaskID;
             hasError = "true";
             isReportGenerated = "false";
             errorMessage = ex.getMessage();
@@ -36,7 +37,7 @@ public class NetsparkerCloudReport extends PlanResultsAction {
         return result;
     }
 
-    //these getters called from ui like ${IsReportGenerated}
+    // these getters called from ui like ${IsReportGenerated}
 
     public String getScanTaskID() {
         return scanTaskID;

@@ -1,100 +1,81 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 
 <atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
-    <plugin-info>
-        <description>${project.description}</description>
-        <version>${project.version}</version>
-        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
-        <param name="plugin-icon">images/plugin-logo.png</param>
-        <param name="plugin-logo">images/plugin-logo.png</param>
-        <param name="vendor-icon">images/plugin-logo.png</param>
-        <param name="vendor-logo">images/plugin-logo.png</param>
-        <param name="configure.url">/admin/netsparkercloud/NetsparkerCloudEditConfiguration.action</param>
-    </plugin-info>
+  <plugin-info>
+    <description>${project.description}</description>
+    <version>${project.version}</version>
+    <vendor name="${project.organization.name}" url="${project.organization.url}" />
+    <param name="plugin-icon">images/plugin-logo.png</param>
+    <param name="plugin-logo">images/plugin-logo.png</param>
+    <param name="vendor-icon">images/plugin-logo.png</param>
+    <param name="vendor-logo">images/plugin-logo.png</param>
+    <param name="configure.url">/admin/netsparkercloud/NetsparkerCloudEditConfiguration.action</param>
+  </plugin-info>
+  <!-- add our web resources -->
+  <web-resource key="netsparker-cloud-web-resources" name="Netsparker Enterprise Web Resources">
+    <dependency>com.atlassian.auiplugin:ajs</dependency>
+    <dependency>com.atlassian.auiplugin:aui-spinner</dependency>
+    <context>atl.general</context>
+    <resource type="download" name="netsparkercloud-bamboo-plugin.css" location="/css/netsparkercloud-bamboo-plugin.css" />
+    <resource type="download" name="netsparkercloud-bamboo-plugin.js" location="/js/netsparkercloud-bamboo-plugin.js" />
+    <resource type="download" name="images/" location="/images" />
+  </web-resource>
+  <web-resource key="netsparker-cloud-assets" name="Netsparker Enterprise Assets">
+    <resource type="download" name="netsparker-cloud-logo.svg" location="images/netsparker-cloud-logo.svg" />
+  </web-resource>
+  <!-- add our task types  -->
+  <taskType key="netsparker-cloud-scan-task" name="Netsparker Enterprise Scan Task" class="com.netsparker.tasks.NetsparkerCloudScanTask">
+    <description>Initiates Netsparker Enterprise scan.</description>
+    <help link="https://www.netsparker.com/blog/docs-and-faqs/integrating-netsparker-software-development-lifecycle-sdlc/" title="How to use the Netsparker Enterprise scan task" />
+    <help link="https://www.netsparker.com/blog/docs-and-faqs/integrating-netsparker-software-development-lifecycle-sdlc/" title="How to Integrate Netsparker Into Your Existing SDLC" />
+    <configuration class="com.netsparker.tasks.NetsparkerCloudScanTaskConfigurator" />
+    <category name="test" />
+    <resource type="download" name="icon" location="images/plugin-scan-task-logo.png" />
+    <resource type="freemarker" name="edit" location="templates/task/NetsparkerCloudScanTaskEdit.ftl" />
+    <resource type="freemarker" name="view" location="templates/task/NetsparkerCloudScanTaskView.ftl" />
+  </taskType>
+  <!-- add custom pages such as admin & report  -->
+  <web-item key="netsparker-cloud-global-config" name="Netsparker Enterprise Global Config" section="system.admin/plugins" weight="130">
+    <label key="Netsparker Enterprise" />
+    <link linkId="netsparkerCloudConfig">/admin/netsparkercloud/NetsparkerCloudEditConfiguration.action</link>
+  </web-item>
+  <web-item key="netsparker-cloud-plan-report" name="Netsparker Enterprise Plan Report" section="chainResults.subMenu/chainResults" weight="50">
+    <description key="NetsparkerCloudReport.desc">Provides Netsparker Enterprise scan report.</description>
+    <label key="Netsparker Enterprise Report" />
+    <link linkId="NetsparkerCloudPlanDetails">/build/result/viewNetsparkerCloudReport.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
+  </web-item>
+  <web-item key="netsparker-cloud-job-report" name="Netsparker Enterprise Job Report" section="results.subMenu/results" weight="50">
+    <description key="NetsparkerCloudReport.desc">Provides Netsparker Enterprise scan report.</description>
+    <label key="Netsparker Enterprise Report" />
+    <link linkId="NetsparkerCloudPlanDetails">/build/result/viewNetsparkerCloudReport.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
+  </web-item>
+  <xwork key="netsparker-cloud-actions" name="Netsparker Enterprise Actions">
+    <package name="NetsparkerCloudAdmin" extends="admin">
+      <action name="NetsparkerCloudEditConfiguration" class="com.netsparker.PluginSettings" method="edit">
+        <result name="input" type="freemarker">/templates/PluginSettings.ftl</result>
+        <result name="success" type="freemarker">/templates/PluginSettings.ftl</result>
+        <result name="error" type="freemarker">/templates/PluginSettings.ftl</result>
+        <param name="mode">edit</param>
+      </action>
+      <action name="NetsparkerCloudSaveConfiguration" class="com.netsparker.PluginSettings" method="save">
+        <result name="input" type="freemarker">/templates/PluginSettings.ftl</result>
+        <result name="success" type="freemarker">/templates/PluginSettings.ftl</result>
+        <result name="error" type="freemarker">/templates/PluginSettings.ftl</result>
+      </action>
+    </package>
+    <package name="NetsparkerCloudScanResult" extends="buildView">
+      <action name="viewNetsparkerCloudReport" class="com.netsparker.tasks.NetsparkerCloudReport">
+        <result name="input" type="freemarker">/templates/task/NetsparkerCloudReport.ftl</result>
+        <result name="success" type="freemarker">/templates/task/NetsparkerCloudReport.ftl</result>
+        <result name="error" type="freemarker">/templates/task/NetsparkerCloudReport.ftl</result>
+      </action>
+    </package>
+  </xwork>
+  <component-import name="Storage Location Service" key="storage-location-service" interface="com.atlassian.bamboo.storage.StorageLocationService" />
 
-    <!-- add our web resources -->
-    <web-resource key="netsparker-cloud-web-resources" name="Netsparker Enterprise Web Resources">
-        <dependency>com.atlassian.auiplugin:ajs</dependency>
-        <dependency>com.atlassian.auiplugin:aui-spinner</dependency>
-        <context>atl.general</context>
-        <resource type="download" name="netsparkercloud-bamboo-plugin.css"
-                  location="/css/netsparkercloud-bamboo-plugin.css"/>
-        <resource type="download" name="netsparkercloud-bamboo-plugin.js"
-                  location="/js/netsparkercloud-bamboo-plugin.js"/>
-        <resource type="download" name="images/" location="/images"/>
-    </web-resource>
-
-    <web-resource key="netsparker-cloud-assets" name="Netsparker Enterprise Assets">
-        <resource type="download" name="netsparker-cloud-logo.svg" location="images/netsparker-cloud-logo.svg"/>
-    </web-resource>
-
-    <!-- add our task types  -->
-    <taskType key="netsparker-cloud-scan-task" name="Netsparker Enterprise Scan Task"
-              class="com.netsparker.tasks.NetsparkerCloudScanTask">
-        <description>Initiates Netsparker Enterprise scan.</description>
-        <help link="https://www.netsparker.com/blog/docs-and-faqs/integrating-netsparker-software-development-lifecycle-sdlc/"
-              title="How to use the Netsparker Enterprise scan task"/>
-        <help link="https://www.netsparker.com/blog/docs-and-faqs/integrating-netsparker-software-development-lifecycle-sdlc/"
-              title="How to Integrate Netsparker Into Your Existing SDLC"/>
-        <configuration class="com.netsparker.tasks.NetsparkerCloudScanTaskConfigurator"/>
-        <category name="test"/>
-        <resource type="download" name="icon" location="images/plugin-scan-task-logo.png"/>
-        <resource type="freemarker" name="edit" location="templates/task/NetsparkerCloudScanTaskEdit.ftl"/>
-        <resource type="freemarker" name="view" location="templates/task/NetsparkerCloudScanTaskView.ftl"/>
-    </taskType>
-
-    <!-- add rest resources  -->
-    <!-- http://bambooserver/rest/plugin/netsparkercloud/api -->
-    <rest name="Netsparker Enterprise Bamboo Rest Api" key="netsparker-cloud-rest-api"
-          path="/plugin/netsparkercloud/api" version="1.0">
-        <description>Bamboo Rest API for Netsparker Enterprise Plugin</description>
-    </rest>
-
-    <!-- add custom pages such as admin & report  -->
-    <web-item key="netsparker-cloud-global-config" name="Netsparker Enterprise Global Config"
-              section="system.admin/plugins" weight="130">
-        <label key="Netsparker Enterprise"/>
-        <link linkId="netsparkerCloudConfig">/admin/netsparkercloud/NetsparkerCloudEditConfiguration.action</link>
-    </web-item>
-
-    <web-item key="netsparker-cloud-plan-report" name="Netsparker Enterprise Plan Report"
-              section="chainResults.subMenu/chainResults" weight="50">
-        <description key="NetsparkerCloudReport.desc">Provides Netsparker Enterprise scan report.</description>
-        <label key="Netsparker Enterprise Report"/>
-        <link linkId="NetsparkerCloudPlanDetails">/build/result/viewNetsparkerCloudReport.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
-    </web-item>
-
-    <web-item key="netsparker-cloud-job-report" name="Netsparker Enterprise Job Report"
-              section="results.subMenu/results" weight="50">
-        <description key="NetsparkerCloudReport.desc">Provides Netsparker Enterprise scan report.</description>
-        <label key="Netsparker Enterprise Report"/>
-        <link linkId="NetsparkerCloudPlanDetails">/build/result/viewNetsparkerCloudReport.action?buildKey=${buildKey}&amp;buildNumber=${buildNumber}</link>
-    </web-item>
-
-    <xwork key="netsparker-cloud-actions" name="Netsparker Enterprise Actions">
-        <package name="NetsparkerCloudAdmin" extends="admin">
-            <action name="NetsparkerCloudEditConfiguration" class="com.netsparker.PluginSettings" method="edit">
-                <result name="input" type="freemarker">/templates/PluginSettings.ftl</result>
-                <result name="success" type="freemarker">/templates/PluginSettings.ftl</result>
-                <result name="error" type="freemarker">/templates/PluginSettings.ftl</result>
-                <param name="mode">edit</param>
-            </action>
-
-            <action name="NetsparkerCloudSaveConfiguration" class="com.netsparker.PluginSettings" method="save">
-                <result name="input" type="freemarker">/templates/PluginSettings.ftl</result>
-                <result name="success" type="freemarker">/templates/PluginSettings.ftl</result>
-                <result name="error" type="freemarker">/templates/PluginSettings.ftl</result>
-            </action>
-        </package>
-        <package name="NetsparkerCloudScanResult" extends="buildView">
-            <action name="viewNetsparkerCloudReport" class="com.netsparker.tasks.NetsparkerCloudReport">
-                <result name="input" type="freemarker">/templates/task/NetsparkerCloudReport.ftl</result>
-                <result name="success" type="freemarker">/templates/task/NetsparkerCloudReport.ftl</result>
-                <result name="error" type="freemarker">/templates/task/NetsparkerCloudReport.ftl</result>
-            </action>
-        </package>
-    </xwork>
-
-    <component-import name="Storage Location Service" key="storage-location-service"
-                      interface="com.atlassian.bamboo.storage.StorageLocationService"/>
+  <!-- add rest resources  -->
+  <!-- http://bambooserverUrl/rest/netsparkerBambooApi/1.0/ -->
+  <rest name="Netsparker Enterprise Bamboo API" key="netsparker-enterprise-rest-api" path="/netsparkerBambooApi" version="1.0">
+    <description key="netsparkerBambooApi.description">Netsparker Enterprise Plugin Bamboo API</description>
+  </rest>
 </atlassian-plugin>

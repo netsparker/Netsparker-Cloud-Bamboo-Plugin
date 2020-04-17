@@ -29,7 +29,7 @@
                             hideElement(iframe);
                             showElement(warning);
                         } else {
-                            var requestURL = "${req.contextPath}/rest/plugin/netsparkercloud/api/1.0/report/${scanTaskID}";
+                            var requestURL = "${req.contextPath}/rest/netsparkerBambooApi/1.0/report/${scanTaskID}";
 
                             var xhr = new XMLHttpRequest();
                             xhr.open("GET", requestURL);

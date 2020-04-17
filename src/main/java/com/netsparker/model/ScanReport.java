@@ -1,11 +1,10 @@
 package com.netsparker.model;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.netsparker.utility.AppCommon;
-import org.apache.http.HttpEntity;
+import com.opensymphony.webwork.dispatcher.json.JSONObject;
 import org.apache.http.HttpResponse;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 
@@ -28,7 +27,7 @@ public class ScanReport {
 	}
 
 	public ScanReport(boolean scanRequestHasError, String scanRequestErrorMessage,
-					  boolean reportRequestHasError, String reportRequestErrorMessage, String requestURI) {
+			boolean reportRequestHasError, String reportRequestErrorMessage, String requestURI) {
 		this.reportRequestResponse = null;
 		this.scanRequestHasError = scanRequestHasError;
 		this.scanRequestErrorMessage = scanRequestErrorMessage;
@@ -42,20 +41,13 @@ public class ScanReport {
 	}
 
 	public boolean isReportGenerated() {
-		//when report stored, it will be loaded from disk for later requests. There is an exception potential.
+		// when report stored, it will be loaded from disk for later requests. There is an exception
+		// potential.
 		try {
 			return getContentType().equalsIgnoreCase("text/html");
 		} catch (Exception ex) {
 			return false;
 		}
-	}
-
-	public static void setReportHtmlAsStringField(String reportHtml) {
-		ScanReport.reportHtmlAsString = reportHtml;
-	}
-
-	public void setReportHtmlAsString(String reportHtml) {
-		setReportHtmlAsStringField(reportHtml);
 	}
 
 	public String getContent() {
@@ -67,14 +59,12 @@ public class ScanReport {
 				content = ExceptionContent(content, reportRequestErrorMessage);
 			} else {
 
-				HttpEntity httpEntity = reportRequestResponse.getEntity();
-
 				String contentData = null;
 
 				try {
 					contentData = AppCommon.parseResponseToString(reportRequestResponse);
 
-					setReportHtmlAsString(contentData);
+					ScanReport.reportHtmlAsString = contentData;
 				} catch (IOException ex) {
 					contentData = reportHtmlAsString;
 				}
@@ -82,12 +72,11 @@ public class ScanReport {
 				if (isReportGenerated()) {
 					content = contentData;
 				} else {
-					JSONParser parser = new JSONParser();
-					JSONObject obj = (JSONObject) parser.parse(contentData);
-					content = (String) obj.get("Message");
+					JSONObject data = new Gson().fromJson(contentData, JSONObject.class);
+					content = data.getString("Message");
 				}
 			}
-		} catch (ParseException ex) {
+		} catch (JsonParseException ex) {
 			content = ExceptionContent("Report result is not parsable.", ex.toString());
 		} catch (Exception ex) {
 			content = ExceptionContent(content, ex.toString());
@@ -103,16 +92,14 @@ public class ScanReport {
 			content = "<p>Something went wrong.</p>";
 		}
 		if (requestURI != null) {
-			content = content
-					+ "<p>Request URL: " + requestURI + "</p>";
+			content = content + "<p>Request URL: " + requestURI + "</p>";
 		}
 		if (reportRequestResponse != null && reportRequestResponse.getStatusLine() != null) {
-			content = content
-					+ "<p>HttpStatusCode: " + reportRequestResponse.getStatusLine().getStatusCode() + "</p>";
+			content = content + "<p>HttpStatusCode: "
+					+ reportRequestResponse.getStatusLine().getStatusCode() + "</p>";
 		}
 		if (ExceptionMessage != null) {
-			content = content
-					+ "<p>Exception Message:: " + ExceptionMessage + "</p>";
+			content = content + "<p>Exception Message:: " + ExceptionMessage + "</p>";
 		}
 
 		return content;

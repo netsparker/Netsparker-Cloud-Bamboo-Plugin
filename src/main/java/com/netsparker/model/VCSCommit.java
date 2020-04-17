@@ -15,7 +15,9 @@ public class VCSCommit {
         return new VCSCommit("", "", "", "", "", false, "", "", "", dateString);
     }
 
-    public VCSCommit(String bambooVersion, String pluginVersion, String buildId, String buildConfigurationName, String buildURL, boolean buildHasChange, String versionControlName, String Committer, String vcsVersion, String ciTimestamp) {
+    public VCSCommit(String bambooVersion, String pluginVersion, String buildId,
+            String buildConfigurationName, String buildURL, boolean buildHasChange,
+            String versionControlName, String Committer, String vcsVersion, String ciTimestamp) {
         this.ciBuildServerVersion = bambooVersion;
         this.ciNcPluginVersion = pluginVersion;
         this.buildId = buildId;
@@ -38,14 +40,11 @@ public class VCSCommit {
     private final String committer;
     private final String vcsVersion;
     private final String ciTimestamp;
-    private String rootURL = "";
 
     public void setRootURL(String rootURL) {
         if (rootURL == null) {
-            this.rootURL = "";
             return;
         }
-        this.rootURL = rootURL;
     }
 
     public String getCiBuildServerVersion() {
@@ -91,11 +90,15 @@ public class VCSCommit {
     public void addVcsCommitInfo(List<NameValuePair> params) {
         params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildId", buildId));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.IntegrationSystem", "Bamboo"));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildServerVersion", ciBuildServerVersion));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiNcPluginVersion", ciNcPluginVersion));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildConfigurationName", buildConfigurationName));
+        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildServerVersion",
+                ciBuildServerVersion));
+        params.add(
+                new BasicNameValuePair("VcsCommitInfoModel.CiNcPluginVersion", ciNcPluginVersion));
+        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildConfigurationName",
+                buildConfigurationName));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildUrl", buildURL));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildHasChange", String.valueOf(buildHasChange)));
+        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildHasChange",
+                String.valueOf(buildHasChange)));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.CiTimestamp", ciTimestamp));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.VcsName", versionControlName));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.VcsVersion", vcsVersion));

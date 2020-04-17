@@ -87,7 +87,7 @@ cancelUri='/admin/administer.action']
 
         var request = AJS.$.ajax({
             type: "POST",
-            url: "${req.contextPath}/rest/plugin/netsparkercloud/api/1.0/testconnection",
+            url: "${req.contextPath}/rest/netsparkerBambooApi/1.0/testconnection",
             data: JSON.stringify(TestConnectionModel),
             contentType: "application/json",
             dataType: "json"

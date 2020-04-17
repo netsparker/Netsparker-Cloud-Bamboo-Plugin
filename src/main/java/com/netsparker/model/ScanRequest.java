@@ -75,6 +75,8 @@ public class ScanRequest extends ScanRequestBase {
 				params.add(new BasicNameValuePair("ProfileId", profileId));
 				params.add(new BasicNameValuePair("ScanType", "FullWithSelectedProfile"));
 				break;
+			default:
+				break;
 		}
 	}
 }

@@ -5,11 +5,9 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -18,13 +16,14 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public class WebsiteModelRequest extends ScanRequestBase {
-    public static final String Websites_JSON_MODEL_Literal = "netsparkerCloudWebsitesJsonModel";
+	public static final String Websites_JSON_MODEL_Literal = "netsparkerCloudWebsitesJsonModel";
 	private String websitesJsonModel = "";
 
 	private ArrayList<WebsiteModel> websiteModels = new ArrayList<>();
 	private HttpResponse response;
 
-	public WebsiteModelRequest(String apiURL, String apiToken) throws MalformedURLException, NullPointerException, URISyntaxException {
+	public WebsiteModelRequest(String apiURL, String apiToken)
+			throws MalformedURLException, NullPointerException, URISyntaxException {
 		super(apiURL, apiToken);
 		pluginWebSiteModelsUri = new URL(ApiURL, "api/1.0/scans/PluginWebSiteModels").toURI();
 	}
@@ -35,7 +34,7 @@ public class WebsiteModelRequest extends ScanRequestBase {
 		return websiteModels;
 	}
 
-	public HttpResponse getPluginWebSiteModels() throws IOException, ParseException {
+	public HttpResponse getPluginWebSiteModels() throws IOException, JSONException {
 		final HttpClient httpClient = getHttpClient();
 		final HttpGet httpGet = new HttpGet(pluginWebSiteModelsUri);
 		httpGet.setHeader("Accept", json);
@@ -48,40 +47,39 @@ public class WebsiteModelRequest extends ScanRequestBase {
 		return response;
 	}
 
-	private void parseWebsiteData() throws ParseException, IOException {
+	private void parseWebsiteData() throws IOException, JSONException {
 		String data = AppCommon.parseResponseToString(response);
 		websitesJsonModel = data;
 
-		JSONParser parser = new JSONParser();
-		Object jsonData = parser.parse(data);
-
-		JSONArray WebsiteModelObjects = (JSONArray) jsonData;
 		websiteModels = new ArrayList<>();
 
-		for (Object wmo : WebsiteModelObjects) {
-			if (wmo instanceof JSONObject) {
-				JSONObject websiteModelObject = (JSONObject) wmo;
+		JSONArray jsonObjectArr = new JSONArray(data.trim());
 
-				WebsiteModel websiteModel = new WebsiteModel();
-				websiteModel.setId((String) websiteModelObject.get("Id"));
-				websiteModel.setName((String) websiteModelObject.get("Name"));
-				websiteModel.setUrl((String) websiteModelObject.get("Url"));
+		for (int w = 0; w < jsonObjectArr.length(); w++) {
+			JSONObject websiteModelJson = jsonObjectArr.getJSONObject(w);
 
-				JSONArray WebsiteProfileModelObjects = (JSONArray) websiteModelObject.get("WebsiteProfiles");
-				ArrayList<WebsiteProfileModel> profiles = new ArrayList<>();
-				for (Object wmpo : WebsiteProfileModelObjects) {
-					JSONObject websiteProfileModelObject = (JSONObject) wmpo;
+			WebsiteModel websiteModel = new WebsiteModel();
+			websiteModel.setId((String) websiteModelJson.get("Id"));
+			websiteModel.setName((String) websiteModelJson.get("Name"));
+			websiteModel.setUrl((String) websiteModelJson.get("Url"));
 
-					WebsiteProfileModel websiteProfileModel = new WebsiteProfileModel();
-					websiteProfileModel.setId((String) websiteProfileModelObject.get("Id"));
-					websiteProfileModel.setName((String) websiteProfileModelObject.get("Name"));
+			JSONArray websiteProfileModelJsonArr =
+					(JSONArray) websiteModelJson.get("WebsiteProfiles");
 
-					profiles.add(websiteProfileModel);
-				}
+			ArrayList<WebsiteProfileModel> profiles = new ArrayList<>();
 
-				websiteModel.setProfiles(profiles);
-				websiteModels.add(websiteModel);
+			for (int i = 0; i < websiteProfileModelJsonArr.length(); i++) {
+				JSONObject websiteProfileModelJson = websiteProfileModelJsonArr.getJSONObject(i);
+
+				WebsiteProfileModel websiteProfileModel = new WebsiteProfileModel();
+				websiteProfileModel.setId((String) websiteProfileModelJson.get("Id"));
+				websiteProfileModel.setName((String) websiteProfileModelJson.get("Name"));
+
+				profiles.add(websiteProfileModel);
 			}
+
+			websiteModel.setProfiles(profiles);
+			websiteModels.add(websiteModel);
 		}
 	}
 

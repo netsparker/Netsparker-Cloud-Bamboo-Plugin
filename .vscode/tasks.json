@@ -1,0 +1,74 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "atlasCleanTask",
+            "type": "shell",
+            "command": "atlas-clean",
+            "isBackground": true,
+            "problemMatcher": [
+                {
+                    "pattern": [
+                        {
+                            "regexp": "\\b\\B",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "^.*Preparing to execute Maven clean.*",
+                        "endsPattern": "^.*End of maven clean*"
+                    }
+                }
+            ]
+        },
+        {
+            "label": "atlasDebugTask",
+            "type": "shell",
+            //this is optional which deletes all bamboo data also
+            // "dependsOn": [
+            //     "atlasCleanTask"
+            // ],
+            "command": "atlas-debug",
+            "isBackground": true,
+            "problemMatcher": [
+                {
+                    "pattern": [
+                        {
+                            "regexp": "\\b\\B",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": "^.*Preparing to execute Maven in debug mode.*",
+                        "endsPattern": "^.*Listening for transport dt_socket at address.*"
+                    }
+                }
+            ]
+        },
+        {
+            "label": "atlasInstallPlugin",
+            "type": "shell",
+            "command": "atlas-install-plugin",
+            "dependsOn": [
+                "atlasPackage"
+            ]
+        },
+        {
+            "label": "atlasPackage",
+            "type": "shell",
+            "command": "atlas-package",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

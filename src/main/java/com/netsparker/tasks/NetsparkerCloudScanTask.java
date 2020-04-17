@@ -1,6 +1,5 @@
 package com.netsparker.tasks;
 
-import com.atlassian.bamboo.utils.SystemProperty;
 import com.netsparker.ConfigManager;
 import com.netsparker.model.ScanRequest;
 import com.netsparker.model.ScanRequestResult;
@@ -15,6 +14,7 @@ import com.atlassian.bamboo.task.*;
 import com.atlassian.bamboo.v2.build.BuildChanges;
 import com.atlassian.bamboo.v2.build.BuildContext;
 import com.atlassian.bamboo.variable.CustomVariableContext;
+import com.atlassian.bamboo.variable.VariableDefinitionContext;
 import com.atlassian.spring.container.ContainerManager;
 import org.apache.http.HttpResponse;
 
@@ -27,13 +27,16 @@ public class NetsparkerCloudScanTask implements TaskType {
     private ConfigManager configManager = new ConfigManager();
 
     public AdministrationConfiguration getAdministrationConfiguration() {
-        return (AdministrationConfiguration) ContainerManager.getComponent("administrationConfiguration");
+        return (AdministrationConfiguration) ContainerManager
+                .getComponent("administrationConfiguration");
     }
 
-    public Map<String, String> getCustomVariables(final TaskContext taskContext) {
-        final CustomVariableContext customVariableContext = (CustomVariableContext) ContainerManager.getComponent("customVariableContext");
+    public Map<String, VariableDefinitionContext> getCustomVariables(
+            final TaskContext taskContext) {
+        final CustomVariableContext customVariableContext =
+                (CustomVariableContext) ContainerManager.getComponent("customVariableContext");
 
-        return customVariableContext.getVariables(taskContext.getCommonContext());
+        return customVariableContext.getVariableContexts();
     }
 
     @Override
@@ -45,8 +48,10 @@ public class NetsparkerCloudScanTask implements TaskType {
     }
 
     private TaskResult ScanRequestHandler(final TaskContext taskContext) throws TaskException {
-        final TaskResultBuilder builder = TaskResultBuilder.newBuilder(taskContext).failed(); //Initially set to Failed.
-        final Map<String, String> customVariables = getCustomVariables(taskContext);
+        final TaskResultBuilder builder = TaskResultBuilder.newBuilder(taskContext).failed();
+
+        final Map<String, VariableDefinitionContext> customVariables =
+                getCustomVariables(taskContext);
         final ConfigurationMap configurationMap = taskContext.getConfigurationMap();
 
         final String serverURL = configManager.getApiUrl();
@@ -57,19 +62,20 @@ public class NetsparkerCloudScanTask implements TaskType {
 
         logScanParams(scanType, websiteId, profileId);
         VCSCommit vcsCommit = getVCSCommit(taskContext, customVariables);
-        //logCustomParams(customVariables);
         logScanInfoBeginning();
         logInfo("Requesting scan...");
 
         try {
-            ScanRequest scanRequest = new ScanRequest(
-                    serverURL, apiToken, scanType, websiteId, profileId, vcsCommit);
+            ScanRequest scanRequest =
+                    new ScanRequest(serverURL, apiToken, scanType, websiteId, profileId, vcsCommit);
 
             HttpResponse scanRequestResponse = scanRequest.scanRequest();
             logInfo("Response status code: " + scanRequestResponse.getStatusLine().getStatusCode());
 
-            ScanRequestResult scanRequestResult = new ScanRequestResult(scanRequestResponse, serverURL, apiToken);
-            // HTTP status code 201 refers to created. This means our request added to queue. Otherwise it is failed.
+            ScanRequestResult scanRequestResult =
+                    new ScanRequestResult(scanRequestResponse, serverURL, apiToken);
+            // HTTP status code 201 refers to created. This means our request added to queue.
+            // Otherwise it is failed.
             if (scanRequestResult.getHttpStatusCode() == 201 && !scanRequestResult.isError()) {
                 ScanRequestSuccessHandler(taskContext, builder, customVariables, scanRequestResult);
             } else {
@@ -86,13 +92,13 @@ public class NetsparkerCloudScanTask implements TaskType {
     }
 
     private void ScanRequestSuccessHandler(final TaskContext taskContext,
-                                           final TaskResultBuilder builder,
-                                           final Map<String, String> customVariables,
-                                           final ScanRequestResult scanRequestResult) throws IOException {
+            final TaskResultBuilder builder,
+            final Map<String, VariableDefinitionContext> customVariables,
+            final ScanRequestResult scanRequestResult) throws IOException {
         builder.success();
         final BuildContext buildContext = taskContext.getBuildContext();
-        final String planKey = customVariables.get("planKey");
-        final String buildKey = customVariables.get("buildKey");
+        final String planKey = customVariables.get("planKey").getValue();
+        final String buildKey = customVariables.get("buildKey").getValue();
         final String buildNumber = String.valueOf(buildContext.getBuildNumber());
 
         configManager.setScanTaskID(planKey, buildNumber, scanRequestResult.getScanTaskID());
@@ -101,29 +107,38 @@ public class NetsparkerCloudScanTask implements TaskType {
         logInfo("Scan requested successfully.");
     }
 
-    private void ScanRequestFailureHandler(final TaskResultBuilder builder, final ScanRequestResult scanRequestResult) throws Exception {
+    private void ScanRequestFailureHandler(final TaskResultBuilder builder,
+            final ScanRequestResult scanRequestResult) throws Exception {
         builder.failed();
         logError("Scan request failed. Error Message: " + scanRequestResult.getErrorMessage());
     }
 
-    private VCSCommit getVCSCommit(final TaskContext taskContext, final Map<String, String> customVariables) {
+    private VCSCommit getVCSCommit(final TaskContext taskContext,
+            final Map<String, VariableDefinitionContext> customVariables) {
+
         final BuildContext buildContext = taskContext.getBuildContext();
-        final AdministrationConfiguration administrationConfiguration = getAdministrationConfiguration();
+
+        final AdministrationConfiguration administrationConfiguration =
+                getAdministrationConfiguration();
+
         final BuildChanges buildChanges = buildContext.getBuildChanges();
+
         final List<CommitContext> changes = buildChanges.getChanges();
+
         boolean buildHasChange = !changes.isEmpty();
 
         String buildId = String.valueOf(buildContext.getBuildNumber());
         String buildConfigurationName = buildContext.getPlanName();
-        String buildURL = administrationConfiguration.getBaseUrl() + "/browse/" + buildContext.getPlanResultKey().toString();
-        String bambooVersion = customVariables.get("version");
+        String buildURL = administrationConfiguration.getBaseUrl() + "/browse/"
+                + buildContext.getPlanResultKey().toString();
+        String bambooVersion = ""; // customVariables.get("version").getValue();
         String pluginVersion = "";
 
         try {
             final Properties properties = new Properties();
-            properties.load(this.getClass().getClassLoader().getResourceAsStream("ApplicationInfo.properties"));
+            properties.load(this.getClass().getClassLoader()
+                    .getResourceAsStream("ApplicationInfo.properties"));
             pluginVersion = properties.getProperty("PluginVersion");
-            bambooVersion = "Not found.";
 
             String productVersion = System.getProperty("product.version");
             if (productVersion != null) {
@@ -132,14 +147,14 @@ public class NetsparkerCloudScanTask implements TaskType {
         } catch (Exception e) {
             // pom props could not read, continue normal
             if (AppCommon.IsNullOrEmpty(bambooVersion)) {
-                bambooVersion = "Not found.";
+                bambooVersion = "";
             }
             if (AppCommon.IsNullOrEmpty(pluginVersion)) {
                 pluginVersion = "Not found.";
             }
         }
 
-        //ISO 8601-compliant date and time format
+        // ISO 8601-compliant date and time format
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
         String dateString = dateFormat.format(new Date());
 
@@ -163,14 +178,16 @@ public class NetsparkerCloudScanTask implements TaskType {
             if (AppCommon.IsNullOrEmpty(userName)) {
                 userName = "Not Found.";
             }
-            String vcsName = customVariables.get("planRepository.type");
+            String vcsName = customVariables.get("planRepository.type").getValue();
             if (AppCommon.IsNullOrEmpty(vcsName)) {
                 userName = "Not Found.";
             }
 
-            vcsCommit = new VCSCommit(bambooVersion, pluginVersion, buildId, buildConfigurationName, buildURL, buildHasChange, vcsName, userName, changeSetId, dateString);
+            vcsCommit = new VCSCommit(bambooVersion, pluginVersion, buildId, buildConfigurationName,
+                    buildURL, buildHasChange, vcsName, userName, changeSetId, dateString);
         } else {
-            vcsCommit = new VCSCommit(bambooVersion, pluginVersion, buildId, buildConfigurationName, buildURL, buildHasChange, "", "", "", dateString);
+            vcsCommit = new VCSCommit(bambooVersion, pluginVersion, buildId, buildConfigurationName,
+                    buildURL, buildHasChange, "", "", "", dateString);
         }
 
         logBuildParams(vcsCommit);
@@ -178,19 +195,32 @@ public class NetsparkerCloudScanTask implements TaskType {
         return vcsCommit;
     }
 
-    private void logScanParams(final String scanType, final String websiteId, final String profileId) {
-        buildLogger.addBuildLogEntry("***************************************************************************" + "\n");
-        buildLogger.addBuildLogEntry("********************  Netsparker Enterprise Scan Parameters  *******************" + "\n");
-        buildLogger.addBuildLogEntry("***************************************************************************" + "\n");
+    private void logScanParams(final String scanType, final String websiteId,
+            final String profileId) {
+        buildLogger.addBuildLogEntry(
+                "***************************************************************************"
+                        + "\n");
+        buildLogger.addBuildLogEntry(
+                "********************  Netsparker Enterprise Scan Parameters  *******************"
+                        + "\n");
+        buildLogger.addBuildLogEntry(
+                "***************************************************************************"
+                        + "\n");
         logIfNotNull("Scan Type" + ": " + scanType);
         logIfNotNull("Website Id" + ": " + websiteId);
         logIfNotNull("Website Profile Id" + ": " + profileId);
-        buildLogger.addBuildLogEntry("***************************************************************************" + "\n");
+        buildLogger.addBuildLogEntry(
+                "***************************************************************************"
+                        + "\n");
     }
 
     private void logBuildParams(final VCSCommit commit) {
-        buildLogger.addBuildLogEntry("********************  Netsparker Enterprise Build Parameters  ******************" + "\n");
-        buildLogger.addBuildLogEntry("***************************************************************************" + "\n");
+        buildLogger.addBuildLogEntry(
+                "********************  Netsparker Enterprise Build Parameters  ******************"
+                        + "\n");
+        buildLogger.addBuildLogEntry(
+                "***************************************************************************"
+                        + "\n");
         logIfNotNull("Build Id: " + commit.getBuildId());
         logIfNotNull("Build configuration name: " + commit.getBuildConfigurationName());
         logIfNotNull("Build url: " + commit.getBuildURL());
@@ -201,29 +231,23 @@ public class NetsparkerCloudScanTask implements TaskType {
         logIfNotNull("Time stamp: " + commit.getCiTimestamp());
         logIfNotNull("Build server version: " + commit.getCiBuildServerVersion());
         logIfNotNull("PluginVersion: " + commit.getCiNcPluginVersion());
-        logIfNotNull("***************************************************************************" + "\n");
+        logIfNotNull("***************************************************************************"
+                + "\n");
     }
 
     private void logScanInfoBeginning() {
-        buildLogger.addBuildLogEntry("***********************  Netsparker Enterprise Scan Info  **********************" + "\n");
-        buildLogger.addBuildLogEntry("***************************************************************************" + "\n");
+        buildLogger.addBuildLogEntry(
+                "***********************  Netsparker Enterprise Scan Info  **********************"
+                        + "\n");
+        buildLogger.addBuildLogEntry(
+                "***************************************************************************"
+                        + "\n");
     }
 
     private void logScanInfoEnd() {
-        buildLogger.addBuildLogEntry("***************************************************************************" + "\n");
-    }
-
-    private void logCustomParams(final Map<String, String> customVariables) {
-        buildLogger.addBuildLogEntry("**************************************************************************" + "\n");
-        buildLogger.addBuildLogEntry("*******************       Bamboo Custom Variables       ******************" + "\n");
-        buildLogger.addBuildLogEntry("**************************************************************************" + "\n");
-        final Iterator<String> iterator = customVariables.keySet().iterator();
-        while (iterator.hasNext()) {
-            String key = iterator.next();
-            final String value = customVariables.get(key);
-            buildLogger.addBuildLogEntry(key + ": " + value + "\n");
-        }
-        buildLogger.addBuildLogEntry("**************************************************************************" + "\n");
+        buildLogger.addBuildLogEntry(
+                "***************************************************************************"
+                        + "\n");
     }
 
     private void logIfNotNull(final String message) {
