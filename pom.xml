@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.netsparker</groupId>
     <artifactId>netsparkercloud-bamboo-plugin</artifactId>
-    <version>1.2</version>
+    <version>1.2.1</version>
     <organization>
         <name>Netsparker</name>
         <url>https://www.netsparker.com/</url>
