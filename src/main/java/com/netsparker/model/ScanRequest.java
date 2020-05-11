@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScanRequest extends ScanRequestBase {
-    public static final String SCAN_TYPE_Literal = "netsparkerCloudScanType";
-    public static final String WEBSITE_ID_Literal = "netsparkerCloudWebsiteID";
-    public static final String PROFILE_ID_Literal = "netsparkerCloudProfileID";
+	public static final String SCAN_TYPE_Literal = "netsparkerCloudScanType";
+	public static final String WEBSITE_ID_Literal = "netsparkerCloudWebsiteID";
+	public static final String PROFILE_ID_Literal = "netsparkerCloudProfileID";
 	public final ScanType scanType;
 	public final String websiteId;
 	public final String profileId;
@@ -28,7 +28,9 @@ public class ScanRequest extends ScanRequestBase {
 	public final URI testUri;
 	private final String json = "application/json";
 
-	public ScanRequest(String apiURL, String apiToken, String scanType, String websiteId, String profileId, VCSCommit vcsCommit) throws MalformedURLException, NullPointerException, URISyntaxException {
+	public ScanRequest(String apiURL, String apiToken, String scanType, String websiteId,
+			String profileId, VCSCommit vcsCommit)
+			throws MalformedURLException, NullPointerException, URISyntaxException {
 		super(apiURL, apiToken);
 		this.scanType = ScanType.valueOf(scanType);
 		this.websiteId = websiteId;
@@ -66,6 +68,11 @@ public class ScanRequest extends ScanRequestBase {
 
 	private void setScanParams(List<NameValuePair> params) {
 		switch (scanType) {
+			case Incremental:
+				params.add(new BasicNameValuePair("WebsiteId", websiteId));
+				params.add(new BasicNameValuePair("ProfileId", profileId));
+				params.add(new BasicNameValuePair("ScanType", "Incremental"));
+				break;
 			case FullWithPrimaryProfile:
 				params.add(new BasicNameValuePair("WebsiteId", websiteId));
 				params.add(new BasicNameValuePair("ScanType", "FullWithPrimaryProfile"));
