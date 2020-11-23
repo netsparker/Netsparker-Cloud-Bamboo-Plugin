@@ -89,3 +89,5 @@ fabric.properties
 *.factorypath
 *.project
 *.prefs
+
+netsparkercloud-bamboo-plugin.iml

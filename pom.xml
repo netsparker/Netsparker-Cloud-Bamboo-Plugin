@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.netsparker</groupId>
     <artifactId>netsparkercloud-bamboo-plugin</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
     <organization>
         <name>Netsparker</name>
         <url>https://www.netsparker.com/</url>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.2</version>
+            <version>1.9.4</version>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
