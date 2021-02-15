@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.netsparker</groupId>
     <artifactId>netsparkercloud-bamboo-plugin</artifactId>
-    <version>1.7.2</version>
+    <version>1.7.3</version>
     <organization>
         <name>Netsparker</name>
         <url>https://www.netsparker.com/</url>
@@ -13,7 +13,7 @@
     <description>Initiates Netsparker Enterprise scan.</description>
     <packaging>atlassian-plugin</packaging>
     <properties>
-        <bamboo.version>7.1.2</bamboo.version>
+        <bamboo.version>7.2.1</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <amps.version>8.0.2</amps.version>
         <plugin.testrunner.version>2.0.1</plugin.testrunner.version>
@@ -142,7 +142,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>atlassian-plugin-sdk</id>
-            <url>file:\\D:\atlassian-plugin-sdk-8.0.16</url>
+            <url>file:\\D:\atlassian-plugin-sdk-8.2.6</url>
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
