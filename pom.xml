@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.netsparker</groupId>
     <artifactId>netsparkercloud-bamboo-plugin</artifactId>
-    <version>1.7.3</version>
+    <version>1.8.0</version>
     <organization>
         <name>Netsparker</name>
         <url>https://www.netsparker.com/</url>
@@ -13,7 +13,7 @@
     <description>Initiates Netsparker Enterprise scan.</description>
     <packaging>atlassian-plugin</packaging>
     <properties>
-        <bamboo.version>7.2.1</bamboo.version>
+        <bamboo.version>8.0.2</bamboo.version>
         <bamboo.data.version>${bamboo.version}</bamboo.data.version>
         <amps.version>8.0.2</amps.version>
         <plugin.testrunner.version>2.0.1</plugin.testrunner.version>
@@ -41,14 +41,9 @@
             <groupId>com.atlassian.plugin</groupId>
             <artifactId>atlassian-spring-scanner-annotation</artifactId>
             <version>${atlassian.spring.scanner.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.atlassian.plugin</groupId>
-            <artifactId>atlassian-spring-scanner-runtime</artifactId>
-            <version>${atlassian.spring.scanner.version}</version>
-            <scope>runtime</scope>
-        </dependency>
+
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
@@ -90,7 +85,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.9</version>
+            <version>4.5.13</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -142,7 +137,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>atlassian-plugin-sdk</id>
-            <url>file:\\D:\atlassian-plugin-sdk-8.2.6</url>
+            <url>file:\\D:\atlassian-plugin-sdk-8.2.7</url>
             <releases>
                 <enabled>true</enabled>
                 <checksumPolicy>warn</checksumPolicy>
